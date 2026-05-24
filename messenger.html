@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger Network Simulator</title>
+    <style>
+           * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .phone-container {
+            width: 412px;
+            max-width: 100%;
+            height: 850px;
+            max-height: 100vh;
+            background-color: #000000;
+            border-radius: 24px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #222;
+        }
+
+        /* --- SCREEN 1: CLEAN LOGIN --- */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 30px;
+            background: linear-gradient(180deg, #16002c 0%, #000000 100%);
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 50%, #e73c7e 100%);
+            border-radius: 22px;
+            margin-bottom: 35px;
+        }
+
+        .login-screen h1 {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .input-box {
+            width: 100%;
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            border: 1px solid #2c2c2e;
+        }
+
+        .input-box input {
+            width: 100%;
+            background: none;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #0084ff, #a200ff);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* --- MAIN APP INTERFACE ARCHITECTURE --- */
+        .app-main-view {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .tab-content-panel {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .tab-content-panel.active {
+            display: block;
+        }
+
+        .global-header {
+            padding: 15px 16px 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .global-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .icon-circle {
+            width: 36px;
+            height: 36px;
+            background-color: #1c1c1e;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .search-container {
+            padding: 0 16px 12px 16px;
+        }
+
+        .search-bar {
+            width: 100%;
+            background-color: #1c1c1e;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 0.9rem;
+            border: none;
+            outline: none;
+        }
+
+        /* --- TAB 1: CHATS LIST --- */
+        .stories-bubble-row {
+            display: flex;
+            gap: 15px;
+            padding: 5px 16px 15px 16px;
+            overflow-x: auto;
+            border-bottom: 1px solid #1c1c1e;
+        }
+
+        .story-bubble-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 65px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .story-avatar-frame {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: #2c2c2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            border: 2px solid #0084ff;
+            margin-bottom: 6px;
+        }
+
+        .story-bubble-thought {
+            position: absolute;
+            top: -10px;
+            background-color: #242526;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            max-width: 75px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid #3a3b3c;
+            color: #fff;
+        }
+
+        .story-bubble-name {
+            font-size: 0.75rem;
+            color: #b0b3b8;
+            max-width: 65px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-row-item {
+            display: flex;
+            padding: 12px 16px;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .chat-row-item:hover { background-color: #121212; }
+
+        .chat-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background-color: #2c2c2e;
+            margin-right: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+
+        .chat-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-title-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .chat-room-title { font-weight: 600; font-size: 0.95rem; color: #fff; }
+        .chat-room-time { font-size: 0.8rem; color: #8e8e93; }
+        .chat-room-preview { font-size: 0.85rem; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
+
+        /* --- TAB 2: STORIES GRID --- */
+        .stories-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .story-card {
+            height: 240px;
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #2c2c2e;
+        }
+
+        .story-card-avatar {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #0084ff;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            z-index: 2;
+        }
+
+        .story-card-name {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            z-index: 2;
+        }
+
+        .story-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+            z-index: 1;
+        }
+
+        /* --- TAB 3: NOTIFICATIONS --- */
+        .notif-section-title { padding: 12px 16px; font-size: 0.85rem; color: #8e8e93; font-weight: 600; }
+        .notif-row { display: flex; padding: 12px 16px; align-items: center; }
+        .notif-avatar { width: 48px; height: 48px; border-radius: 50%; background-color: #2c2c2e; margin-right: 14px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; }
+        .notif-text-container { flex: 1; }
+        .notif-message { font-size: 0.9rem; line-height: 1.3; color: #fff; }
+        .notif-message strong { font-weight: 600; }
+        .notif-time { font-size: 0.75rem; color: #8e8e93; margin-top: 2px; }
+        .notif-dot-blue { width: 8px; height: 8px; background-color: #0084ff; border-radius: 50%; margin-left: auto; }
+
+        /* --- TAB 4: MENU OVERVIEW --- */
+        .menu-profile-card {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            margin: 16px;
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .menu-profile-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #0084ff;
+            margin-right: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .menu-profile-info h3 { font-size: 1rem; font-weight: 600; }
+        .menu-profile-info p { font-size: 0.8rem; color: #8e8e93; margin-top: 2px; }
+
+        .menu-list-section { padding: 0 16px; }
+        .menu-item-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #1c1c1e; }
+        .menu-item-icon { font-size: 1.2rem; margin-right: 16px; width: 24px; text-align: center; }
+        .menu-item-text { font-size: 0.95rem; font-weight: 500; flex: 1; }
+
+        /* --- SCREEN 3: ACTIVE CONVERSATION SHEET --- */
+        .chat-interface-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background-color: #000;
+        }
+
+        .chat-room-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #1c1c1e;
+        }
+
+        .back-btn { font-size: 1.4rem; cursor: pointer; margin-right: 15px; color: #0084ff; }
+
+        .active-room-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-color: #2c2c2e;
+            margin-right: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+        }
+
+        .active-room-name { font-weight: 600; font-size: 0.95rem; }
+        .active-room-status { font-size: 0.75rem; color: #8e8e93; }
+
+        .message-feed {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg-bubble-wrapper { display: flex; flex-direction: column; max-width: 75%; }
+        .msg-author { font-size: 0.7rem; color: #8e8e93; margin-bottom: 2px; margin-left: 6px; }
+        .msg-bubble { padding: 10px 14px; border-radius: 18px; font-size: 0.92rem; line-height: 1.4; word-break: break-word; }
+
+        .msg-bubble-wrapper.incoming { align-self: flex-start; }
+        .msg-bubble-wrapper.incoming .msg-bubble { background-color: #242526; color: #ffffff; }
+
+        .msg-bubble-wrapper.outgoing { align-self: flex-end; }
+        .msg-bubble-wrapper.outgoing .msg-author { display: none; }
+        .msg-bubble-wrapper.outgoing .msg-bubble { background: linear-gradient(135deg, #0084ff 0%, #00c6ff 100%); color: white; }
+        
+        .msg-delete-btn {
+    background: none;
+    border: none;
+    color: #ff4d4f;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.2s;
+}
+
+.msg-delete-btn:hover {
+    opacity: 0.7;
+}
+
+.msg-time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding-left: 6px;
+}
+
+.msg-time {
+    font-size: 0.7rem;
+    color: #8e8e93;
+}
+
+.message-feed::-webkit-scrollbar {
+    width: 4px;
+}
+
+.message-feed::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+.story-bubble-row::-webkit-scrollbar {
+    display: none;
+}
+
+.chat-row-item {
+    transition: background 0.2s ease;
+}
+
+.send-message-btn:hover {
+    opacity: 0.8;
+}
+
+        .message-input-bar {
+            padding: 12px 16px;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #1c1c1e;
+        }
+
+        .text-input-field {
+            flex: 1;
+            background-color: #1c1c1e;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: white;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .send-message-btn { background: none; border: none; color: #0084ff; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+
+        .bottom-nav {
+            height: 60px;
+            border-top: 1px solid #1c1c1e;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #000;
+        }
+
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; color: #8e8e93; cursor: pointer; }
+        .nav-item.active { color: #0084ff; }
+        .nav-icon { font-size: 1.3rem; margin-bottom: 2px; }
+
+        /* --- INTERACTIVE ACTION MODALS --- */
+        .interactive-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 10;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-box {
+            background-color: #1c1c1e;
+            width: 100%;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #2c2c2e;
+        }
+        .modal-box h4 { font-size: 1.1rem; margin-bottom: 12px; }
+        .modal-box input {
+            width: 100%;
+            padding: 10px;
+            background-color: #2c2c2e;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .modal-btn.primary { background-color: #0084ff; color: white; }
+        .modal-btn.secondary { background-color: #3a3b3c; color: white; }
+
+        .camera-viewfinder {
+            width: 100%;
+            height: 350px;
+            background-color: #000;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            border: 1px dashed #444;
+        }
+        .shutter-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+            border: 5px solid #333;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+
+    <div class="login-screen" id="loginScreen">
+        <div class="login-logo"></div>
+        <h1>messenger</h1>
+        <div class="input-box">
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="off">
+        </div>
+        <div class="input-box">
+            <input type="password" id="loginPassword" placeholder="Password">
+        </div>
+        <button class="login-btn" id="loginSubmitBtn">Log In</button>
+    </div>
+
+    <div class="app-main-view" id="appMainView">
+        <div class="global-header">
+            <h2 id="headerDisplayTitle">Chats</h2>
+            <div class="header-icons">
+                <div class="icon-circle" id="cameraIconTrigger">📷</div>
+                <div class="icon-circle" id="composeIconTrigger">✏️</div>
+            </div>
+        </div>
+
+        <div class="search-container" id="globalSearchContainer">
+            <input type="text" class="search-bar" id="metaSearchField" placeholder="🔍 Ask Meta AI or Search">
+        </div>
+
+        <div class="tab-content-panel active" id="panel-chats">
+            <!-- The Upper Notes list row is now generated strictly by JS -->
+            <div class="stories-bubble-row" id="upperNotesRow"></div>
+            <div id="chatsListContainer"></div>
+        </div>
+
+        <div class="tab-content-panel" id="panel-stories">
+            <div class="stories-grid">
+                <div class="story-card" style="background-image: url('https://picsum.photos/200/300?random=1');">
+                    <div class="story-card-avatar">🍒</div>
+                    <div class="story-card-name">Add to story</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content-panel" id="panel-notifications">
+            <div class="notif-section-title">New</div>
+            <div class="notif-row">
+                <div class="notif-avatar">🌷</div>
+                <div class="notif-text-container">
+                    <div class="notif-message"><strong>Ruth Balanes</strong> Posted a story you might like.</div>
+                    <div class="notif-time">3h ago</div>
+                </div>
+                <div class="notif-dot-blue"></div>
+            </div>
+        </div>
+
+        <div class="tab-content-panel" id="panel-menu">
+            <div class="menu-profile-card" id="menuLogOutTrigger">
+                <div class="menu-profile-avatar" id="menuProfileAvatar">?</div>
+                <div class="menu-profile-info">
+                    <h3 id="menuProfileName">Account Name</h3>
+                    <p>Tap here to Switch Profile / Log Out 🚪</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchMainTab('chats', this)"><span class="nav-icon">💬</span><span>Chats</span></div>
+            <div class="nav-item" onclick="switchMainTab('stories', this)"><span class="nav-icon">👥</span><span>Stories</span></div>
+            <div class="nav-item" onclick="switchMainTab('notifications', this)"><span class="nav-icon">🔔</span><span>Notifications</span></div>
+            <div class="nav-item" onclick="switchMainTab('menu', this)"><span class="nav-icon">☰</span><span>Menu</span></div>
+        </div>
+    </div>
+
+    <div class="chat-interface-screen" id="chatInterfaceScreen">
+        <div class="chat-room-header">
+            <div class="back-btn" id="closeChatViewBtn">◀</div>
+            <div class="active-room-avatar" id="activeRoomAvatar"></div>
+            <div class="active-room-info">
+                <div class="active-room-name" id="activeRoomName">Group Chat</div>
+                <div class="active-room-status">Active now</div>
+            </div>
+        </div>
+        <div class="message-feed" id="messageFeedDisplay"></div>
+        <div class="message-input-bar">
+            <input type="text" class="text-input-field" id="dialogueInputField" placeholder="Aa" autocomplete="off">
+            <button class="send-message-btn" id="sendDialogueBtn">Send</button>
+        </div>
+    </div>
+
+<!-- NOTE OVERLAY -->
+<div class="interactive-overlay" id="noteOverlay">
+    <div class="modal-box">
+        <h4>Share what's on your mind...</h4>
+
+        <input
+            type="text"
+            id="noteInputField"
+            placeholder="Type a note..."
+            maxlength="30">
+
+    <div class="modal-buttons">
+            <button class="modal-btn primary" id="saveNoteBtn">
+                Share
+            </button>
+
+            <button class="modal-btn secondary" id="closeNoteBtn">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CAMERA OVERLAY -->
+<div class="interactive-overlay" id="cameraOverlay">
+    <div class="modal-box">
+
+        <div class="camera-viewfinder">
+            📸
+        </div>
+
+        <div
+            class="shutter-btn"
+            id="shutterBtnTrigger"
+            style="margin:auto;"
+        ></div>
+
+        <button
+            class="modal-btn secondary"
+            id="closeCameraBtn"
+            style="margin-top:20px;"
+        >
+            Close Camera
+        </button>
+
+    </div>
+</div>
+
+<!-- COMPOSE OVERLAY -->
+<div class="interactive-overlay" id="composeOverlay">
+    <div class="modal-box">
+
+        <h4>New Message</h4>
+
+        <input
+            type="text"
+            id="composeSearchField"
+            placeholder="Type a profile name..."
+        >
+
+        <div class="modal-buttons">
+            <button
+                class="modal-btn secondary"
+                id="closeComposeBtn"
+            >
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Stores deleted messages PER USER ONLY
+let deletedMessages =
+    JSON.parse(localStorage.getItem('deleted_messages')) || {};
+
+let dynamicChatMemory =
+    JSON.parse(localStorage.getItem('messenger_memory')) || {
+        "group_powerpuff": [],
+        "direct_mikaella_john": [],
+        "direct_mikaella_juliene": [],
+        "direct_john_juliene": []
+    };
+
+let loggedInUser = "";
+let loggedInKey = ""; // FIXED
+let currentActiveTargetRoom = null;
+let currentSearchQuery = "";
+
+
+const networkAccounts = [
+    { key: "mary", name: "Mary Juliene Barrios", short: "Mary", initial: "🍒", noteKey: "note_mary", defaultNote: "mga oa ah HAHAHA"},
+    { key: "mikaella", name: "Mikaella Bueno", short: "Mikaella", initial: "🌸", noteKey: "note_mikaella", defaultNote: "missu by"},
+    { key: "john", name: "John Michael Bordan", short: "John Michael", initial: "⚡", noteKey: "note_john", defaultNote: "I miss you!" }
+];
+
+// --- III. CORE DOCUMENT OBJECT MODEL (DOM) APPARATUS ---
+const loginScreen = document.getElementById('loginScreen');
+const appMainView = document.getElementById('appMainView');
+const chatInterfaceScreen = document.getElementById('chatInterfaceScreen');
+const loginUsername = document.getElementById('loginUsername');
+const loginPassword = document.getElementById('loginPassword');
+const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+const menuProfileAvatar = document.getElementById('menuProfileAvatar');
+const menuProfileName = document.getElementById('menuProfileName');
+const menuLogOutTrigger = document.getElementById('menuLogOutTrigger');
+const chatsListContainer = document.getElementById('chatsListContainer');
+const closeChatViewBtn = document.getElementById('closeChatViewBtn');
+const activeRoomAvatar = document.getElementById('activeRoomAvatar');
+const activeRoomName = document.getElementById('activeRoomName');
+const messageFeedDisplay = document.getElementById('messageFeedDisplay');
+const dialogueInputField = document.getElementById('dialogueInputField');
+const sendDialogueBtn = document.getElementById('sendDialogueBtn');
+const headerDisplayTitle = document.getElementById('headerDisplayTitle');
+const globalSearchContainer = document.getElementById('globalSearchContainer');
+const metaSearchField = document.getElementById('metaSearchField');
+const upperNotesRow = document.getElementById('upperNotesRow');
+
+// Interactive Element Windows
+const noteOverlay = document.getElementById('noteOverlay');
+const noteInputField = document.getElementById('noteInputField');
+const saveNoteBtn = document.getElementById('saveNoteBtn');
+const closeNoteBtn = document.getElementById('closeNoteBtn');
+
+const cameraOverlay = document.getElementById('cameraOverlay');
+const cameraIconTrigger = document.getElementById('cameraIconTrigger');
+const closeCameraBtn = document.getElementById('closeCameraBtn');
+const shutterBtnTrigger = document.getElementById('shutterBtnTrigger');
+
+const composeOverlay = document.getElementById('composeOverlay');
+const composeIconTrigger = document.getElementById('composeIconTrigger');
+const closeComposeBtn = document.getElementById('closeComposeBtn');
+
+
+// --- IV. APPLICATION SESSION & SECURITY CONTEXT HANDLERS ---
+
+/**
+ * Validates authentication criteria, reads structural aliases,
+ * transforms profile layouts, and handles dashboard context routing.
+ */
+loginSubmitBtn.addEventListener('click', () => {
+  
+  window.addEventListener('load', () => {
+
+    const savedAccount =
+        localStorage.getItem('active_account');
+
+    if (!savedAccount) return;
+
+    const matched =
+        networkAccounts.find(acc =>
+            acc.key === savedAccount
+        );
+
+    if (!matched) return;
+
+    loggedInUser = matched.name;
+    loggedInKey = matched.key;
+
+    menuProfileName.innerText =
+        matched.name;
+
+    menuProfileAvatar.innerText =
+        matched.initial;
+
+    loginScreen.style.display = 'none';
+    appMainView.style.display = 'flex';
+
+    switchMainTab(
+        'chats',
+        document.querySelector('.nav-item')
+    );
+});
+
+    const rawName = loginUsername.value.trim();
+
+    if (!rawName) return;
+
+    const lowerInput = rawName.toLowerCase();
+
+    const matched =
+        networkAccounts.find(acc =>
+            acc.key === lowerInput
+        );
+
+    if (!matched) {
+
+        alert(
+            "Access Denied: Only Mary, Mikaella, and John are allowed."
+        );
+
+        return;
+    }
+
+    // If allowed, proceed with normal login flow
+    loggedInUser = matched.name;
+    loggedInKey = matched.key;
+
+    localStorage.setItem(
+        'active_account',
+        loggedInKey
+    );
+    if (matched) {
+        menuProfileName.innerText =
+        matched.name;
+
+    menuProfileAvatar.innerText =
+        matched.initial;
+    } else {
+        menuProfileName.innerText = loggedInUser;
+        menuProfileAvatar.innerText = loggedInUser.charAt(0).toUpperCase();
+    }
+
+    // Flush fields and slide display planes
+    loginUsername.value = '';
+    loginPassword.value = '';
+    loginScreen.style.display = 'none';
+
+    appMainView.style.display = 'flex';
+
+    switchMainTab(
+        'chats',
+        document.querySelector('.nav-item')
+    );
+});
+
+
+/**
+ * Flushes active session string, unbinds structures, and resets layout states.
+ */
+menuLogOutTrigger.addEventListener('click', () => {
+
+    loggedInUser = "";
+    loggedInKey = "";
+
+    localStorage.removeItem(
+        'active_account'
+    );
+
+    appMainView.style.display = 'none';
+
+    chatInterfaceScreen.style.display = 'none';
+
+    loginScreen.style.display = 'flex';
+});
+
+/**
+ * Steps out of individual message sheets back to structural list views.
+ */
+closeChatViewBtn.addEventListener('click', () => {
+    chatInterfaceScreen.style.display = 'none';
+    appMainView.style.display = 'flex';
+    buildChatsDashboardTab();
+});
+
+
+// --- V. STATUS METRICS & DIALOG NOTES ROUTINE ENGINE ---
+
+/**
+ * Displays input modal with placeholder configurations.
+ */
+function openNoteInputModal(currentText) {
+    noteInputField.value = currentText === "Drop note" ? "" : currentText;
+    noteOverlay.style.display = "flex";
+}
+
+closeNoteBtn.addEventListener('click', () => noteOverlay.style.display = "none");
+
+/**
+ * Commits text streams to local memory partitions and updates view.
+ */
+saveNoteBtn.addEventListener('click', () => {
+    const value = noteInputField.value.trim();
+    const matchedSelf = networkAccounts.find(acc => loggedInUser.toLowerCase().includes(acc.key));
+    
+    const storageKey = matchedSelf ? matchedSelf.noteKey : note_${loggedInUser.toLowerCase()};
+    const finalNoteText = value || "Drop note";
+    
+    localStorage.setItem(storageKey, finalNoteText);
+    noteOverlay.style.display = "none";
+    renderNotesRow();
+});
+
+
+// --- VI. SIMULATED DEVICE SUBSYSTEM TRIGGERS ---
+cameraIconTrigger.addEventListener('click', () => cameraOverlay.style.display = "flex");
+closeCameraBtn.addEventListener('click', () => cameraOverlay.style.display = "none");
+shutterBtnTrigger.addEventListener('click', () => {
+    cameraOverlay.style.display = "none";
+    alert("Photo captured successfully!");
+});
+
+composeIconTrigger.addEventListener('click', () => composeOverlay.style.display = "flex");
+closeComposeBtn.addEventListener('click', () => composeOverlay.style.display = "none");
+
+
+// --- VII. DATA RENDERING & PERSPECTIVE MATRIX CONTROLLERS ---
+
+/**
+ * Directs dynamic navigation panels and switches active application screens.
+ */
+function switchMainTab(targetTabId, element) {
+    document.querySelectorAll('.tab-content-panel').forEach(panel => panel.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(panel-${targetTabId}).classList.add('active');
+    element.classList.add('active');
+
+    if (targetTabId === 'chats') {
+        headerDisplayTitle.innerText = "Chats";
+        globalSearchContainer.style.display = "block";
+        renderNotesRow(); 
+        buildChatsDashboardTab();
+    } else {
+        headerDisplayTitle.innerText = targetTabId.charAt(0).toUpperCase() + targetTabId.slice(1);
+        globalSearchContainer.style.display = "none";
+    }
+}
+
+/**
+ * Implements Meta AI live context sorting metrics.
+ */
+metaSearchField.addEventListener('input', (e) => {
+    currentSearchQuery = e.target.value.toLowerCase();
+    buildChatsDashboardTab();
+});
+
+/**
+ * Generates the dynamic top notes list row.
+ * Filters out the logged-in user from peer positions and establishes direct relationships.
+ */
+function renderNotesRow() {
+    upperNotesRow.innerHTML = '';
+    const lowerMe = loggedInUser.toLowerCase();
+
+    // Pull system mapping array configuration references
+    const activeSelfAccount = networkAccounts.find(acc =>
+    acc.key === loggedInKey
+);
+
+    // 1. Inject Personal Bubble (Self Node)
+    const selfItem = document.createElement('div');
+    selfItem.classList.add('story-bubble-item');
+    
+    let selfAvatar = "👤";
+    let selfStorageKey = note_${lowerMe};
+    let selfCurrentNoteText = "Drop note";
+
+    if (activeSelfAccount) {
+        selfAvatar = activeSelfAccount.initial;
+        selfStorageKey = activeSelfAccount.noteKey;
+    }
+    
+    selfCurrentNoteText = localStorage.getItem(selfStorageKey) || (activeSelfAccount ? activeSelfAccount.defaultNote : "Drop note");
+
+    selfItem.innerHTML = `
+        <div class="story-avatar-frame" style="border-color:#444;">${selfAvatar}
+            <div class="story-bubble-thought">${selfCurrentNoteText}</div>
+        </div>
+        <div class="story-bubble-name">Leave a n...</div>
+    `;
+    selfItem.onclick = () => openNoteInputModal(selfCurrentNoteText);
+    upperNotesRow.appendChild(selfItem);
+
+    // 2. Inject Context Peer Nodes dynamically based on account visibility rules
+    networkAccounts.forEach(account => {
+        if (account.key === loggedInKey) return;
+
+        const friendNoteText = localStorage.getItem(account.noteKey) || account.defaultNote;
+
+        const bubbleItem = document.createElement('div');
+        bubbleItem.classList.add('story-bubble-item');
+        
+        // --- THIS LINE IS THE ONLY ADDITION ---
+        // It tells the browser: "When someone clicks this friend's bubble, open the note modal"
+        bubbleItem.onclick = () => openNoteInputModal(friendNoteText);
+        // --------------------------------------
+
+        bubbleItem.innerHTML = `
+            <div class="story-avatar-frame">${account.initial}
+                <div class="story-bubble-thought">${friendNoteText}</div>
+            </div>
+            <div class="story-bubble-name">${account.short}</div>
+        `;
+        upperNotesRow.appendChild(bubbleItem);
+    });
+}
+
+
+/**
+ * Assembles chat room cards in real time based on active login identity.
+ * Rearranges chat pairings to present appropriate peer endpoints.
+ */
+function buildChatsDashboardTab() {
+    chatsListContainer.innerHTML = '';
+    const lowerMe = loggedInUser.toLowerCase();
+    let targetScaffold = [];
+
+    // Evaluate current context matching definitions
+    if (lowerMe.includes("mikaella")) {
+        targetScaffold.push({ memoryKey: "group_powerpuff", name: "The Powerpuff Girls", initial: "🎀" });
+        targetScaffold.push({ memoryKey: "direct_mikaella_john", name: "John Michael Bordan", initial: "⚡" });
+        targetScaffold.push({ memoryKey: "direct_mikaella_juliene", name: "Mary Juliene Barrios", initial: "🍒" });
+    } else if (lowerMe.includes("john") || lowerMe.includes("michael")) {
+        targetScaffold.push({ memoryKey: "group_powerpuff", name: "The Powerpuff Girls", initial: "🎀" });
+        targetScaffold.push({ memoryKey: "direct_mikaella_john", name: "Mikaella Bueno", initial: "🌸" });
+        targetScaffold.push({ memoryKey: "direct_john_juliene", name: "Mary Juliene Barrios", initial: "🍒" });
+    } else {
+        targetScaffold.push({ memoryKey: "group_powerpuff", name: "The Powerpuff Girls", initial: "🎀" });
+        targetScaffold.push({ memoryKey: "direct_mikaella_juliene", name: "Mikaella Bueno", initial: "🌸" });
+        targetScaffold.push({ memoryKey: "direct_john_juliene", name: "John Michael Bordan", initial: "⚡" });
+    }
+
+    // Process search-bar token matches
+    const filteredScaffold = targetScaffold.filter(room => 
+        room.name.toLowerCase().includes(currentSearchQuery)
+    );
+
+    // Build chat nodes layout elements
+    filteredScaffold.forEach(room => {
+        const history = dynamicChatMemory[room.memoryKey] || [];
+        let lastMsg = "No messages yet";
+        if (history.length > 0) {
+            const item = history[history.length - 1];
+            lastMsg = ${item.senderName}: ${item.text};
+        }
+
+        const row = document.createElement('div');
+        row.classList.add('chat-row-item');
+        row.onclick = () => openActiveChatWindow(room);
+        row.innerHTML = `
+            <div class="chat-avatar">${room.initial}</div>
+            <div class="chat-info">
+                <div class="chat-title-row">
+                    <div class="chat-room-title">${room.name}</div>
+                    <div class="chat-room-time">Now</div>
+                </div>
+                <div class="chat-room-preview">${lastMsg}</div>
+            </div>
+        `;
+        chatsListContainer.appendChild(row);
+    });
+}
+
+
+// --- VIII. MESSAGE PIPELINE & LIVE CONVERSATION SHEET LOGIC ---
+
+/**
+ * Initializes and launches a chosen messaging channel layout.
+ */
+function openActiveChatWindow(room) {
+    currentActiveTargetRoom = room;
+    activeRoomAvatar.innerText = room.initial;
+    activeRoomName.innerText = room.name;
+
+    appMainView.style.display = 'none';
+    chatInterfaceScreen.style.display = 'flex';
+    renderRoomFeed();
+}
+
+function escapeHTML(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+/**
+ * Parses conversation logs and assigns bubble alignment classes.
+ */
+function renderRoomFeed() {
+
+    messageFeedDisplay.innerHTML = '';
+
+    const history =
+        dynamicChatMemory[currentActiveTargetRoom.memoryKey] || [];
+
+    const userKey = loggedInUser.toLowerCase();
+
+    if (!deletedMessages[userKey]) {
+        deletedMessages[userKey] = {};
+    }
+
+    if (!deletedMessages[userKey][currentActiveTargetRoom.memoryKey]) {
+        deletedMessages[userKey][currentActiveTargetRoom.memoryKey] = [];
+    }
+
+    const hiddenIndexes =
+        deletedMessages[userKey][currentActiveTargetRoom.memoryKey];
+
+    history.forEach((msg, index) => {
+
+        if (hiddenIndexes.includes(msg.id)) return;
+
+        const wrapper = document.createElement('div');
+
+        wrapper.classList.add(
+            'msg-bubble-wrapper',
+            msg.senderName.toLowerCase() === loggedInUser.toLowerCase()
+                ? 'outgoing'
+                : 'incoming'
+        );
+
+        wrapper.innerHTML = `
+            <div class="msg-author">
+                ${msg.senderName}
+            </div>
+
+            <div class="msg-bubble">
+                ${escapeHTML(msg.text)}
+            </div>
+
+            <div class="msg-time-row">
+
+                <div class="msg-time">
+                    ${msg.time || ''}
+                </div>
+
+                <button
+                    class="msg-delete-btn"
+                    onclick="deleteMessage('${msg.id}')"
+                >
+                    🗑 
+                </button>
+
+            </div>
+        `;
+
+        messageFeedDisplay.appendChild(wrapper);
+    });
+
+    messageFeedDisplay.scrollTop =
+        messageFeedDisplay.scrollHeight;
+}
+/**
+ * Signs, records, saves, and visually streams active outbound string packages.
+ */
+function executeSend() { 
+  const val = dialogueInputField.value.trim(); 
+  if (!val) return; 
+  const roomKey = currentActiveTargetRoom.memoryKey; if (!dynamicChatMemory[roomKey]) { dynamicChatMemory[roomKey] = []; }
+
+const now = new Date(); const formattedTime = now.toLocaleTimeString([], 
+{ hour: '2-digit', minute: 
+'2-digit' }); 
+dynamicChatMemory[roomKey].push({ id: Date.now() + Math.random(),
+senderName: loggedInUser, 
+
+ text: val,
+ time: formattedTime }); 
+ localStorage.setItem( 'messenger_memory', JSON.stringify(dynamicChatMemory) ); dialogueInputField.value = ''; renderRoomFeed();
+ dialogueInputField.focus(); }
+
+// ===============================
+// DELETE MESSAGE
+// ===============================
+function deleteMessage(messageId) {
+
+    const roomKey =
+        currentActiveTargetRoom.memoryKey;
+
+    const history =
+        dynamicChatMemory[roomKey] || [];
+
+    const msg =
+        history.find(m =>
+            String(m.id) === String(messageId)
+        );
+
+    if (!msg) return;
+
+    const isMine =
+        msg.senderName.toLowerCase() ===
+        loggedInUser.toLowerCase();
+
+    // DELETE FOR EVERYONE
+    if (isMine) {
+
+        dynamicChatMemory[roomKey] =
+            history.filter(m =>
+                String(m.id) !== String(messageId)
+            );
+
+        localStorage.setItem(
+            'messenger_memory',
+            JSON.stringify(dynamicChatMemory)
+        );
+    }
+
+    // =============================
+    // DELETE FOR ME ONLY
+    // =============================
+    else {
+
+        const userKey =
+            loggedInKey;
+
+        if (!deletedMessages[userKey]) {
+            deletedMessages[userKey] = {};
+        }
+
+        if (!deletedMessages[userKey][roomKey]) {
+            deletedMessages[userKey][roomKey] = [];
+        }
+
+        deletedMessages[userKey][roomKey]
+            .push(messageId);
+
+        localStorage.setItem(
+            'deleted_messages',
+            JSON.stringify(deletedMessages)
+        );
+    }
+
+       renderRoomFeed();
+}
+
+// Event Bindings for live chat submission
+sendDialogueBtn.addEventListener('click', executeSend);
+dialogueInputField.addEventListener('keypress', (e) => {
+    if(e.key === 'Enter') executeSend();
+});
+
+window.addEventListener('load', () => {
+
+    const savedAccount =
+        localStorage.getItem('active_account');
+
+    if (!savedAccount) return;
+
+    const matched =
+        networkAccounts.find(acc =>
+            acc.key === savedAccount
+        );
+
+    if (!matched) return;
+
+    loggedInUser = matched.name;
+
+    loggedInKey = matched.key;
+
+    menuProfileName.innerText = matched.name;
+
+    menuProfileAvatar.innerText = matched.initial;
+
+    loginScreen.style.display = 'none';
+
+    appMainView.style.display = 'flex';
+
+    switchMainTab(
+        'chats',
+        document.querySelector('.nav-item')
+    );
+});
+</script>
+</body>
+</html>
